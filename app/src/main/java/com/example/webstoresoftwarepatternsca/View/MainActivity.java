@@ -1,8 +1,10 @@
-package com.example.webstoresoftwarepatternsca;
+package com.example.webstoresoftwarepatternsca.View;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
+
+import com.example.webstoresoftwarepatternsca.R;
 
 public class MainActivity extends AppCompatActivity {
 

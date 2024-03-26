@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "12357745056",
+    "project_id": "softwarepatternsca-f1030",
+    "storage_bucket": "softwarepatternsca-f1030.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:12357745056:android:ac22949648916871dcccc5",
+        "android_client_info": {
+          "package_name": "com.example.webstoresoftwarepatternsca"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAz12grU-xLBzEay7AVIykeiV47ES7mJwY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
