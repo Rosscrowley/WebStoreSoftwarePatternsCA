@@ -4,7 +4,7 @@ public class Product {
     private String productId;
     private String title;
     private double price;
-    private String imageUrl;
+    private String imageURL;
 
     public Product() {
 
@@ -14,7 +14,7 @@ public class Product {
         this.productId = productId;
         this.title = title;
         this.price = price;
-        this.imageUrl = imageUrl;
+        this.imageURL = imageUrl;
     }
 
     public String getProductId() { return productId; }
@@ -23,6 +23,6 @@ public class Product {
     public void setTitle(String title) { this.title = title; }
     public double getPrice() { return price; }
     public void setPrice(double price) { this.price = price; }
-    public String getImageUrl() { return imageUrl; }
-    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
+    public String getImageUrl() { return imageURL; }
+    public void setImageUrl(String imageUrl) { this.imageURL = imageUrl; }
 }
