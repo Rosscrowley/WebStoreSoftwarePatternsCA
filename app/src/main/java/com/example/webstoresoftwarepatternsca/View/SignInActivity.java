@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -20,6 +21,7 @@ public class SignInActivity extends AppCompatActivity {
 
     private EditText emailEditText, passwordEditText;
     private Button loginButton;
+    private TextView switchToRegister;
     private AuthenticationRepository authRepository;
     private FirebaseAuth mAuth; // Declaration of the FirebaseAuth instance
 
@@ -36,6 +38,12 @@ public class SignInActivity extends AppCompatActivity {
         emailEditText = findViewById(R.id.emailEntered);
         passwordEditText = findViewById(R.id.passEntered);
         loginButton = findViewById(R.id.signInButton);
+        switchToRegister = findViewById(R.id.textView);
+
+        switchToRegister.setOnClickListener(view -> {
+            Intent i = new Intent(SignInActivity.this, RegisterActivity.class);
+            startActivity(i);
+        });
 
         loginButton.setOnClickListener(view -> {
             String email = emailEditText.getText().toString().trim();

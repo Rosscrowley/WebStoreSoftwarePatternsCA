@@ -19,10 +19,8 @@ public class MainActivity extends AppCompatActivity {
 
     private RecyclerView productsRecyclerView;
     private ProductAdapter productAdapter;
-
     private List<Product> productList = new ArrayList<>();
     private ProductRepository productRepository = new ProductRepository();
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,17 +29,25 @@ public class MainActivity extends AppCompatActivity {
 
         productsRecyclerView = findViewById(R.id.productsRecyclerView);
         productsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        productList = new ArrayList<>();
         productAdapter = new ProductAdapter(this, productList);
+
+        productAdapter.setOnProductClickListener(new ProductAdapter.OnProductClickListener() {
+            @Override
+            public void onProductClick(Product product) {
+
+                openProductDetailFragment(product);
+            }
+        });
+
         productsRecyclerView.setAdapter(productAdapter);
 
-
+        // Fetch products and update UI
         productRepository.getProducts(new ProductRepository.DataStatus() {
             @Override
             public void DataIsLoaded(List<Product> products, List<String> keys) {
                 productList.clear();
                 productList.addAll(products);
-                productAdapter.notifyDataSetChanged();
+                productAdapter.notifyDataSetChanged(); // Refresh the adapter with the new data
             }
 
             @Override
@@ -55,8 +61,16 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void DataLoadFailed(DatabaseError databaseError) {
-                Log.w("ProductsActivity", "Failed to read value.", databaseError.toException());
+                Log.w("MainActivity", "Failed to read value.", databaseError.toException());
             }
         });
+    }
+
+    private void openProductDetailFragment(Product product) {
+        ProductDetailFragment fragment = ProductDetailFragment.newInstance(product);
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.main_activity_container, fragment)
+                .addToBackStack(null)
+                .commit();
     }
 }

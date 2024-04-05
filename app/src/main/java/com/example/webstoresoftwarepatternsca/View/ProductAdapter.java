@@ -5,6 +5,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
@@ -20,9 +21,23 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
     private List<Product> productList;
     private LayoutInflater inflater;
 
+    // Listener for clicks
+    private OnProductClickListener productClickListener;
+
+    // Constructor
     public ProductAdapter(Context context, List<Product> productList) {
         this.inflater = LayoutInflater.from(context);
         this.productList = productList;
+    }
+
+    // Interface for click events
+    public interface OnProductClickListener {
+        void onProductClick(Product product);
+    }
+
+    // Setter for the click listener
+    public void setOnProductClickListener(OnProductClickListener listener) {
+        this.productClickListener = listener;
     }
 
     @NonNull
@@ -37,9 +52,16 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
         Product product = productList.get(position);
         holder.productNameTextView.setText(product.getTitle());
         holder.productPriceTextView.setText("€" + product.getPrice());
-        Log.d("ProductAdapter", "Loading image URL: " + product.getImageUrl());
+        Picasso.get().load(product.getImageUrl()).into(holder.productImageView); // I'm using Picasso to load the image
 
-        Picasso.get().load(product.getImageUrl()).into(holder.productImageView); // Using Picasso to load the image
+        holder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (productClickListener != null) {
+                    productClickListener.onProductClick(product);
+                }
+            }
+        });
     }
 
     @Override

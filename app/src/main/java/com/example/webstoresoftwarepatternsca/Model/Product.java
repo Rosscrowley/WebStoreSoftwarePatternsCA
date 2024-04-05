@@ -1,10 +1,14 @@
 package com.example.webstoresoftwarepatternsca.Model;
 
-public class Product {
+import java.io.Serializable;
+
+public class Product implements Serializable {
     private String productId;
     private String title;
     private double price;
     private String imageURL;
+    private String manufacturer;
+    private String category;
 
     public Product() {
 
@@ -25,4 +29,11 @@ public class Product {
     public void setPrice(double price) { this.price = price; }
     public String getImageUrl() { return imageURL; }
     public void setImageUrl(String imageUrl) { this.imageURL = imageUrl; }
+    public String getManufacturer() {return manufacturer; }
+
+    public void setManufacturer(String manufacturer) { this.manufacturer = manufacturer; }
+
+    public String getCategory() { return category; }
+
+    public void setCategory(String category) { this.category = category; }
 }

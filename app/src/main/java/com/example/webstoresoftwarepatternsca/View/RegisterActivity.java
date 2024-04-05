@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -20,6 +21,8 @@ public class RegisterActivity extends AppCompatActivity {
 
     private EditText emailEditText, passwordEditText, confirmPassword;
     private Button signupButton;
+
+    private TextView switchToSignIn;
     private AuthenticationRepository authRepository;
 
     @Override
@@ -32,6 +35,12 @@ public class RegisterActivity extends AppCompatActivity {
         emailEditText = findViewById(R.id.emailEntered);
         passwordEditText = findViewById(R.id.passEntered);
         confirmPassword = findViewById(R.id.confirmPassEntered);
+        switchToSignIn = findViewById(R.id.textView);
+
+        switchToSignIn.setOnClickListener(view -> {
+            Intent i = new Intent(RegisterActivity.this, SignInActivity.class);
+            startActivity(i);
+        });
 
         signupButton = findViewById(R.id.button);
 
