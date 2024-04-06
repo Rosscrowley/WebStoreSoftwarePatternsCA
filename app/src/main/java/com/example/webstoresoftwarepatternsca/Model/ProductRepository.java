@@ -7,6 +7,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class ProductRepository {
@@ -34,16 +35,40 @@ public class ProductRepository {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 List<Product> products = new ArrayList<>();
+                List<String> productIds = new ArrayList<>(); // To keep track of product IDs
                 for (DataSnapshot productSnapshot : dataSnapshot.getChildren()) {
                     Product product = productSnapshot.getValue(Product.class);
-                    products.add(product);
+                    if (product != null) {
+                        String productId = productSnapshot.getKey();
+                        product.setProductId(productId);
+                        products.add(product);
+                        productIds.add(productId);
+                    }
                 }
-                dataStatus.DataIsLoaded(products, new ArrayList<>());
+                dataStatus.DataIsLoaded(products, productIds);
             }
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
                 dataStatus.DataLoadFailed(databaseError);
+            }
+        });
+    }
+
+    public void getProduct(String productId, final DataStatus callback) {
+        databaseReference.child(productId).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Product product = dataSnapshot.getValue(Product.class);
+                if (product != null) {
+                    product.setProductId(dataSnapshot.getKey());
+                    callback.DataIsLoaded(Collections.singletonList(product), Collections.singletonList(dataSnapshot.getKey()));
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                callback.DataLoadFailed(databaseError);
             }
         });
     }

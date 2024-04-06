@@ -8,9 +8,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.fragment.app.Fragment;
 
+import com.example.webstoresoftwarepatternsca.Model.CartManager;
 import com.example.webstoresoftwarepatternsca.Model.Product;
 import com.example.webstoresoftwarepatternsca.R;
 import com.squareup.picasso.Picasso;
@@ -64,6 +66,8 @@ public class ProductDetailFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 // Add product to basket here
+                CartManager.getInstance().addItemToCart(product.getProductId(), 1);
+                Toast.makeText(getContext(), "Added to cart", Toast.LENGTH_SHORT).show();
             }
         });
 
