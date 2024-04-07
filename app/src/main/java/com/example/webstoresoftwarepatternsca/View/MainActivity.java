@@ -1,7 +1,9 @@
 package com.example.webstoresoftwarepatternsca.View;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.Observer;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -17,7 +19,11 @@ import com.example.webstoresoftwarepatternsca.Model.Product;
 import com.example.webstoresoftwarepatternsca.Model.ProductRepository;
 import com.example.webstoresoftwarepatternsca.R;
 import com.example.webstoresoftwarepatternsca.ViewModel.AlphabeticalSortStrategy;
+import com.example.webstoresoftwarepatternsca.ViewModel.CategoryFilterStrategy;
 import com.example.webstoresoftwarepatternsca.ViewModel.FeatureSortStrategy;
+import com.example.webstoresoftwarepatternsca.ViewModel.FilterStrategy;
+import com.example.webstoresoftwarepatternsca.ViewModel.FilterStrategyFactory;
+import com.example.webstoresoftwarepatternsca.ViewModel.ManufacturerFilterStrategy;
 import com.example.webstoresoftwarepatternsca.ViewModel.PriceHighToLowSortStrategy;
 import com.example.webstoresoftwarepatternsca.ViewModel.PriceLowToHighSortStrategy;
 import com.example.webstoresoftwarepatternsca.ViewModel.SortStrategy;
@@ -29,7 +35,11 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.function.Consumer;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -38,6 +48,8 @@ public class MainActivity extends AppCompatActivity {
     private List<Product> productList = new ArrayList<>();
     private List<Product> originalList = new ArrayList<>();
     private ProductRepository productRepository = new ProductRepository();
+    private FilterStrategy currentFilterStrategy;
+    private Spinner filterSpinner;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -129,6 +141,39 @@ public class MainActivity extends AppCompatActivity {
                 // No sorting applied
             }
         });
+
+        filterSpinner = findViewById(R.id.spinner);
+        filterSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                String selectedOption = parent.getItemAtPosition(position).toString();
+
+                if ("Clear".equals(selectedOption)) {
+                    Log.d("MainActivity", "Clear filter selected, displaying all products...");
+                    resetFilter();
+                } else if ("Category".equals(selectedOption)) {
+                    // Fetch and show categories
+                    productRepository.getLiveCategories().observe(MainActivity.this, categories -> {
+                        if (categories != null && !categories.isEmpty()) {
+                            showFilterDialog("Select Categories", categories, selectedCategories ->
+                                    onFilterSelected("Category", selectedCategories));
+                        }
+                    });
+                } else if ("Manufacturer".equals(selectedOption)) {
+                    // Fetch and show manufacturers
+                    productRepository.getLiveManufacturers().observe(MainActivity.this, manufacturers -> {
+                        if (manufacturers != null && !manufacturers.isEmpty()) {
+                            showFilterDialog("Select Manufacturers", manufacturers, selectedManufacturers ->
+                                    onFilterSelected("Manufacturer", selectedManufacturers));
+                        }
+                    });
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
+        });
     }
 
     public void onProductSelected(String productId) {
@@ -172,6 +217,50 @@ public class MainActivity extends AppCompatActivity {
             sortStrategy.sort(productList);
             productAdapter.notifyDataSetChanged();
         }
+    }
+
+    private void onFilterSelected(String filterType, Set<String> criteria) {
+        productList.clear();
+        productList.addAll(originalList);
+
+        if (!criteria.isEmpty()) {
+            currentFilterStrategy = FilterStrategyFactory.getStrategy(filterType);
+            List<Product> filteredProducts = currentFilterStrategy.filter(productList, criteria);
+
+            productList.clear();
+            productList.addAll(filteredProducts);
+        }
+        productAdapter.notifyDataSetChanged();
+    }
+
+    private void showFilterDialog(String title, Set<String> items, Consumer<Set<String>> onSelection) {
+        final CharSequence[] itemArray = items.toArray(new CharSequence[0]);
+        final boolean[] checkedItems = new boolean[itemArray.length];
+        final Set<String> selectedItems = new HashSet<>();
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(title);
+
+        Arrays.fill(checkedItems, false);
+
+        builder.setMultiChoiceItems(itemArray, checkedItems, (dialog, which, isChecked) -> {
+            if (isChecked) {
+                selectedItems.add(itemArray[which].toString());
+            } else {
+                selectedItems.remove(itemArray[which].toString());
+            }
+        });
+
+        builder.setPositiveButton("OK", (dialog, which) -> onSelection.accept(selectedItems));
+        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss());
+
+        builder.show();
+    }
+
+    private void resetFilter() {
+        productList.clear();
+        productList.addAll(originalList);
+        productAdapter.notifyDataSetChanged();
     }
 }
 

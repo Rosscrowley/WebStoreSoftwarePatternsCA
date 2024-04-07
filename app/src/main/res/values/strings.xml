@@ -7,4 +7,10 @@
         <item>Price Low to High</item>
         <item>Alphabetically</item>
     </string-array>
+
+    <string-array name="filter_options">
+        <item>Clear</item>
+        <item>Manufacturer</item>
+        <item>Category</item>
+    </string-array>
 </resources>
