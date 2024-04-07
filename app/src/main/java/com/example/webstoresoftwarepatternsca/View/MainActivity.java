@@ -9,10 +9,18 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.Spinner;
 
 import com.example.webstoresoftwarepatternsca.Model.Product;
 import com.example.webstoresoftwarepatternsca.Model.ProductRepository;
 import com.example.webstoresoftwarepatternsca.R;
+import com.example.webstoresoftwarepatternsca.ViewModel.AlphabeticalSortStrategy;
+import com.example.webstoresoftwarepatternsca.ViewModel.FeatureSortStrategy;
+import com.example.webstoresoftwarepatternsca.ViewModel.PriceHighToLowSortStrategy;
+import com.example.webstoresoftwarepatternsca.ViewModel.PriceLowToHighSortStrategy;
+import com.example.webstoresoftwarepatternsca.ViewModel.SortStrategy;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -28,6 +36,7 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView productsRecyclerView;
     private ProductAdapter productAdapter;
     private List<Product> productList = new ArrayList<>();
+    private List<Product> originalList = new ArrayList<>();
     private ProductRepository productRepository = new ProductRepository();
 
     @Override
@@ -68,6 +77,7 @@ public class MainActivity extends AppCompatActivity {
             public void DataIsLoaded(List<Product> products, List<String> keys) {
                 productList.clear();
                 productList.addAll(products);
+                originalList = new ArrayList<>(productList);
                 productAdapter.notifyDataSetChanged();
 
                 productAdapter.setOnProductClickListener(new ProductAdapter.OnProductClickListener() {
@@ -90,6 +100,33 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void DataLoadFailed(DatabaseError databaseError) {
                 Log.w("MainActivity", "Failed to read value.", databaseError.toException());
+            }
+        });
+
+
+        Spinner sortSpinner = findViewById(R.id.spinner2);
+        sortSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                switch (position) {
+                    case 0: // Feature
+                        updateSort(new FeatureSortStrategy());
+                        break;
+                    case 1: // Price high to low
+                        updateSort(new PriceHighToLowSortStrategy());
+                        break;
+                    case 2: // Price low to high
+                        updateSort(new PriceLowToHighSortStrategy());
+                        break;
+                    case 3: // Alphabetically
+                        updateSort(new AlphabeticalSortStrategy());
+                        break;
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                // No sorting applied
             }
         });
     }
@@ -125,4 +162,16 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = new Intent(MainActivity.this, CartActivity.class);
         startActivity(intent);
     }
+
+    public void updateSort(SortStrategy sortStrategy) {
+        if (sortStrategy instanceof FeatureSortStrategy) {
+            productList.clear();
+            productList.addAll(originalList);
+            productAdapter.notifyDataSetChanged();
+        } else {
+            sortStrategy.sort(productList);
+            productAdapter.notifyDataSetChanged();
+        }
+    }
 }
+

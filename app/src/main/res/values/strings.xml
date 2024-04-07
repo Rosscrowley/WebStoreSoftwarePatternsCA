@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">WebStoreSoftwarePatternsCa</string>
+
+    <string-array name="sort_options">
+        <item>Feature</item>
+        <item>Price High to Low</item>
+        <item>Price Low to High</item>
+        <item>Alphabetically</item>
+    </string-array>
 </resources>
