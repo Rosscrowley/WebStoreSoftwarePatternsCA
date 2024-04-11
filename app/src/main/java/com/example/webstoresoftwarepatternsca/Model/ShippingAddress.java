@@ -10,6 +10,9 @@ public class ShippingAddress {
         this.city = city;
         this.postalCode = postalCode;
     }
+    public ShippingAddress() {
+
+    }
 
     public String getAddress() {
         return address;

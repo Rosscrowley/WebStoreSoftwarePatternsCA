@@ -42,8 +42,7 @@ public class CartRepository {
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-                // Ideally, post a specific error message to liveCartItems
-                // so observers can handle the error state.
+
             }
         });
 
@@ -111,5 +110,12 @@ public class CartRepository {
 
                     }
                 });
+    }
+
+
+    public void clearUserCart(String userId) {
+        cartsRef.child(userId).removeValue()
+                .addOnSuccessListener(aVoid -> Log.d("CartRepository", "User cart cleared successfully."))
+                .addOnFailureListener(e -> Log.e("CartRepository", "Failed to clear user cart.", e));
     }
 }

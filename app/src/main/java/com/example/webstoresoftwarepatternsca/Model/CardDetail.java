@@ -11,6 +11,9 @@ public class CardDetail {
         this.cvv = cvv;
     }
 
+    public CardDetail() {
+    }
+
     public String getCardNumber() {
         return cardNumber;
     }

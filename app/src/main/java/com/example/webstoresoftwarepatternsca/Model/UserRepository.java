@@ -10,6 +10,9 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class UserRepository {
     private DatabaseReference databaseReference;
 
@@ -68,6 +71,28 @@ public class UserRepository {
     public interface UserFetchListener {
         void onUserFetched(User user);
         void onError(DatabaseError error);
+    }
+
+    public void updateUserCardDetails(String userId, CardDetail cardDetail) {
+        Map<String, Object> cardDetailsMap = new HashMap<>();
+        cardDetailsMap.put("cardNumber", cardDetail.getCardNumber());
+        cardDetailsMap.put("expiryDate", cardDetail.getExpiryDate());
+        cardDetailsMap.put("cvv", cardDetail.getCvv());
+
+        databaseReference.child(userId).child("cardDetail").updateChildren(cardDetailsMap)
+                .addOnSuccessListener(aVoid -> Log.d("UserRepository", "Card details updated successfully."))
+                .addOnFailureListener(e -> Log.e("UserRepository", "Failed to update card details.", e));
+    }
+
+    public void updateUserShippingAddress(String userId, ShippingAddress shippingAddress) {
+        Map<String, Object> shippingAddressMap = new HashMap<>();
+        shippingAddressMap.put("address", shippingAddress.getAddress());
+        shippingAddressMap.put("city", shippingAddress.getCity());
+        shippingAddressMap.put("postalCode", shippingAddress.getPostalCode());
+
+        databaseReference.child(userId).child("shippingAddress").updateChildren(shippingAddressMap)
+                .addOnSuccessListener(aVoid -> Log.d("UserRepository", "Shipping address updated successfully."))
+                .addOnFailureListener(e -> Log.e("UserRepository", "Failed to update shipping address.", e));
     }
 
 

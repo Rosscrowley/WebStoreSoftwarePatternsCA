@@ -2,6 +2,7 @@ package com.example.webstoresoftwarepatternsca.View;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
@@ -19,6 +20,7 @@ import com.example.webstoresoftwarepatternsca.Model.ProductRepository;
 import com.example.webstoresoftwarepatternsca.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseError;
+import com.google.gson.Gson;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -123,7 +125,21 @@ public class CartActivity extends AppCompatActivity {
         });
     }
     private void goToCheckout() {
-        Intent intent = new Intent(CartActivity.this, CheckoutActivity.class);
-        startActivity(intent);
+        double totalPrice = calculateTotalPrice(cartItems, productMap);
+        Intent checkoutIntent = new Intent(CartActivity.this, CheckoutActivity.class);
+        checkoutIntent.putParcelableArrayListExtra("cartItems", (ArrayList<? extends Parcelable>) cartItems); // Assuming cartItems is List<CartItem>
+        checkoutIntent.putExtra("totalPrice", totalPrice);
+        startActivity(checkoutIntent);
+    }
+
+    private double calculateTotalPrice(List<CartItem> cartItems, Map<String, Product> productMap) {
+        double total = 0;
+        for (CartItem item : cartItems) {
+            Product product = productMap.get(item.getProductId());
+            if (product != null) {
+                total += product.getPrice() * item.getQuantity();
+            }
+        }
+        return total;
     }
 }
