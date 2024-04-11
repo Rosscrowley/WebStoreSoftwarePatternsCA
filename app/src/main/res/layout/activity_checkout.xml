@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true"
-    tools:context=".CheckoutActivity">
+    tools:context=".View.CheckoutActivity">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -28,7 +28,7 @@
             android:inputType="textPersonName" />
 
         <EditText
-            android:id="@+id/etAddress"
+            android:id="@+id/addressLineEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Address"
@@ -36,7 +36,7 @@
             android:inputType="textPostalAddress" />
 
         <EditText
-            android:id="@+id/etCity"
+            android:id="@+id/cityEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="City"
@@ -44,7 +44,7 @@
             android:inputType="text" />
 
         <EditText
-            android:id="@+id/etPostalCode"
+            android:id="@+id/postalCodeEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Postal Code"
@@ -60,7 +60,7 @@
             android:layout_marginTop="24dp"/>
 
         <EditText
-            android:id="@+id/etCardNumber"
+            android:id="@+id/cardNumberEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Card Number"
@@ -68,7 +68,7 @@
             android:inputType="number" />
 
         <EditText
-            android:id="@+id/etExpiryDate"
+            android:id="@+id/expiryDateEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Expiry Date (MM/YY)"
@@ -76,7 +76,7 @@
             android:inputType="number" />
 
         <EditText
-            android:id="@+id/etCVV"
+            android:id="@+id/cvvEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="CVV"

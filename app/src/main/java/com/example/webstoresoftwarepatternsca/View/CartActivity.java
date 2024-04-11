@@ -123,6 +123,7 @@ public class CartActivity extends AppCompatActivity {
         });
     }
     private void goToCheckout() {
-        // TODO: Implement the checkout process
+        Intent intent = new Intent(CartActivity.this, CheckoutActivity.class);
+        startActivity(intent);
     }
 }

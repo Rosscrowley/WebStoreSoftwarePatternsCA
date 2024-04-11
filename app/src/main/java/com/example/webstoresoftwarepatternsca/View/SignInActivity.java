@@ -13,9 +13,13 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.webstoresoftwarepatternsca.Model.AuthenticationRepository;
+import com.example.webstoresoftwarepatternsca.Model.User;
+import com.example.webstoresoftwarepatternsca.Model.UserRepository;
+import com.example.webstoresoftwarepatternsca.Model.UserSessionManager;
 import com.example.webstoresoftwarepatternsca.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseError;
 
 public class SignInActivity extends AppCompatActivity {
 
@@ -30,7 +34,6 @@ public class SignInActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sign_in);
 
-        // Initialize FirebaseAuth instance
         mAuth = FirebaseAuth.getInstance();
 
         authRepository = new AuthenticationRepository();
@@ -52,17 +55,35 @@ public class SignInActivity extends AppCompatActivity {
 
             authRepository.signInUser(email, password, task -> {
                 if (task.isSuccessful()) {
-                    // Sign in success, update UI with the signed-in user's information
                     Log.d("LoginActivity", "signInWithEmail:success");
-                    FirebaseUser user = mAuth.getCurrentUser(); // Correct use of mAuth
-                    // Navigate to next screen or show success message
-                    Intent intent = new Intent(SignInActivity.this, MainActivity.class);
-                    startActivity(intent);
+                    FirebaseUser firebaseUser = mAuth.getCurrentUser(); // Get the Firebase user
+
+                    if (firebaseUser != null) {
+                        String userId = firebaseUser.getUid(); // Get Firebase user ID
+                        UserRepository userRepository = new UserRepository();
+
+                        userRepository.fetchUserById(userId, new UserRepository.UserFetchListener() {
+                            @Override
+                            public void onUserFetched(User user) {
+                                if (user == null) {
+                                    User newUser = new User(userId, firebaseUser.getEmail(), null, null, null);
+                                    userRepository.addUser(newUser); // Save the new user to the database
+                                }
+                                UserSessionManager.getInstance().initializeSessionWithFirebaseUserId(userId);
+                                Intent intent = new Intent(SignInActivity.this, MainActivity.class);
+                                startActivity(intent);
+                                finish();
+                            }
+
+                            @Override
+                            public void onError(DatabaseError error) {
+
+                            }
+                        });
+                    }
                 } else {
-                    // If sign in fails, display a message to the user
                     Log.w("LoginActivity", "signInWithEmail:failure", task.getException());
-                    Toast.makeText(SignInActivity.this, "Authentication failed.",
-                            Toast.LENGTH_SHORT).show();
+                    Toast.makeText(SignInActivity.this, "Authentication failed.", Toast.LENGTH_SHORT).show();
                 }
             });
         });
