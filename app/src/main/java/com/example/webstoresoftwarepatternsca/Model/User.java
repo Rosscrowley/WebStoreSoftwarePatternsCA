@@ -4,16 +4,19 @@ public class User {
     private String userId;
     private String email;
     private String name;
-    private String shippingAddress;
+
+    private CardDetail cardDetail;
+    private ShippingAddress shippingAddress;
 
     public User() {
 
     }
 
-    public User(String userId, String email, String name, String shippingAddress) {
+    public User(String userId, String email, String name, CardDetail cardDetail, ShippingAddress shippingAddress) {
         this.userId = userId;
         this.email = email;
         this.name = name;
+        this.cardDetail = cardDetail;
         this.shippingAddress = shippingAddress;
     }
 
@@ -23,6 +26,20 @@ public class User {
     public void setEmail(String email) { this.email = email; }
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
-    public String getShippingAddress() { return shippingAddress; }
-    public void setShippingAddress(String shippingAddress) { this.shippingAddress = shippingAddress; }
+
+    public CardDetail getCardDetail() {
+        return cardDetail;
+    }
+
+    public void setCardDetail(CardDetail cardDetail) {
+        this.cardDetail = cardDetail;
+    }
+
+    public ShippingAddress getShippingAddress() {
+        return shippingAddress;
+    }
+
+    public void setShippingAddress(ShippingAddress shippingAddress) {
+        this.shippingAddress = shippingAddress;
+    }
 }
