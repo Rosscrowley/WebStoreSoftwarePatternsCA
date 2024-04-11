@@ -3,6 +3,7 @@ package com.example.webstoresoftwarepatternsca.View;
 import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -13,6 +14,12 @@ import com.example.webstoresoftwarepatternsca.Model.User;
 import com.example.webstoresoftwarepatternsca.Model.UserRepository;
 import com.example.webstoresoftwarepatternsca.Model.UserSessionManager;
 import com.example.webstoresoftwarepatternsca.R;
+import com.example.webstoresoftwarepatternsca.ViewModel.AddressValidationStrategy;
+import com.example.webstoresoftwarepatternsca.ViewModel.CVVValidationStrategy;
+import com.example.webstoresoftwarepatternsca.ViewModel.CardNumberValidationStrategy;
+import com.example.webstoresoftwarepatternsca.ViewModel.DateValidationStrategy;
+import com.example.webstoresoftwarepatternsca.ViewModel.PostalCodeValidationStrategy;
+import com.example.webstoresoftwarepatternsca.ViewModel.ValidationStrategy;
 import com.google.firebase.database.DatabaseError;
 
 public class CheckoutActivity extends AppCompatActivity {
@@ -37,10 +44,16 @@ public class CheckoutActivity extends AppCompatActivity {
         cityEditText = findViewById(R.id.cityEditText);
         postalCodeEditText = findViewById(R.id.postalCodeEditText);
         confirmPurchaseButton = findViewById(R.id.btnConfirmPurchase);
+        confirmPurchaseButton = findViewById(R.id.btnConfirmPurchase);
 
         fetchAndPrepopulateUserDetails();
+        confirmPurchaseButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                confirmPurchase();
+            }
+        });
     }
-
     private void fetchAndPrepopulateUserDetails() {
         String currentUserId = UserSessionManager.getInstance().getFirebaseUserId();
         Toast.makeText(this, "Fetching user details...", Toast.LENGTH_SHORT).show();
@@ -83,6 +96,43 @@ public class CheckoutActivity extends AppCompatActivity {
 
             }
         });
+    }
+
+    private boolean validateFields() {
+        ValidationStrategy addressStrategy = new AddressValidationStrategy();
+        ValidationStrategy postalCodeStrategy = new PostalCodeValidationStrategy();
+        ValidationStrategy cardNumberStrategy = new CardNumberValidationStrategy();
+        ValidationStrategy cvvStrategy = new CVVValidationStrategy();
+        ValidationStrategy dateStrategy = new DateValidationStrategy();
+
+        if (!addressStrategy.validate(addressLineEditText.getText().toString())) {
+            addressLineEditText.setError("Invalid Address Line");
+            return false;
+        }else if(!addressStrategy.validate(cityEditText.getText().toString())){
+            cityEditText.setError("Invalid City");
+            return false;
+        } else if(!postalCodeStrategy.validate(postalCodeEditText.getText().toString())){
+            postalCodeEditText.setError("Invalid postal code");
+            return false;
+        }else if(!cardNumberStrategy.validate(cardNumberEditText.getText().toString())){
+            cardNumberEditText.setError("Invalid Card Number");
+            return false;
+        }else if(!dateStrategy.validate(expiryDateEditText.getText().toString())){
+            expiryDateEditText.setError("Invalid Date please use dd/mm/yy Format");
+            return false;
+        }else if(!cvvStrategy.validate(cvvEditText.getText().toString())){
+            cvvEditText.setError("Invalid CVV. 3 digit number on the back of card");
+            return false;
+        }
+        return true;
+    }
+
+    private void confirmPurchase() {
+        if (validateFields()) {
+            Toast.makeText(CheckoutActivity.this, "Fields correct purchase confirmed!.", Toast.LENGTH_SHORT).show();
+        } else {
+
+        }
     }
 }
 
