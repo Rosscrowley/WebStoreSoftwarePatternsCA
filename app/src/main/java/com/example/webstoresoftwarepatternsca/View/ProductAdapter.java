@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ImageView;
+import android.widget.RatingBar;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -52,7 +53,8 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
         Product product = productList.get(position);
         holder.productNameTextView.setText(product.getTitle());
         holder.productPriceTextView.setText("€" + product.getPrice());
-        Picasso.get().load(product.getImageUrl()).into(holder.productImageView); // I'm using Picasso to load the image
+        Picasso.get().load(product.getImageUrl()).into(holder.productImageView);
+        holder.productRatingBar.setRating(product.getAverageRating());
 
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -72,12 +74,14 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
     public static class ProductViewHolder extends RecyclerView.ViewHolder {
         public ImageView productImageView;
         public TextView productNameTextView, productPriceTextView;
+        public RatingBar productRatingBar;
 
         public ProductViewHolder(View itemView) {
             super(itemView);
             productImageView = itemView.findViewById(R.id.productImageView);
             productNameTextView = itemView.findViewById(R.id.productNameTextView);
             productPriceTextView = itemView.findViewById(R.id.productPriceTextView);
+            productRatingBar = itemView.findViewById(R.id.ratingBar2);
         }
     }
 }

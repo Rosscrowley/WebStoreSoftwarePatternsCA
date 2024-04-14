@@ -96,5 +96,17 @@
             android:textAppearance="?attr/textAppearanceListItem" />
         </LinearLayout>
 
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/commentsRecyclerView"
+        android:layout_width="373dp"
+        android:layout_height="67dp"
+        android:scrollbars="vertical" />
+
+    <TextView
+        android:id="@+id/leaveCommentTextView"
+        android:layout_width="380dp"
+        android:layout_height="wrap_content"
+        android:text="Leave a comment"
+        android:textAlignment="center"/>
 
 </LinearLayout>

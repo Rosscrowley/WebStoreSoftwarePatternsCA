@@ -10,15 +10,18 @@ public class Product implements Serializable {
     private String manufacturer;
     private String category;
 
+    private float averageRating;
+
     public Product() {
 
     }
 
-    public Product(String productId, String title, double price, String imageUrl) {
+    public Product(String productId, String title, double price, String imageUrl, float averageRating ) {
         this.productId = productId;
         this.title = title;
         this.price = price;
         this.imageURL = imageUrl;
+        this.averageRating = averageRating;
     }
 
     public String getProductId() { return productId; }
@@ -36,4 +39,12 @@ public class Product implements Serializable {
     public String getCategory() { return category; }
 
     public void setCategory(String category) { this.category = category; }
+
+    public float getAverageRating() {
+        return averageRating;
+    }
+
+    public void setAverageRating(float averageRating) {
+        this.averageRating = averageRating;
+    }
 }

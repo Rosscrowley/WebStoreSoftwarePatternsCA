@@ -15,6 +15,8 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Spinner;
 
+import com.example.webstoresoftwarepatternsca.Model.Comment;
+import com.example.webstoresoftwarepatternsca.Model.CommentsRepository;
 import com.example.webstoresoftwarepatternsca.Model.Product;
 import com.example.webstoresoftwarepatternsca.Model.ProductRepository;
 import com.example.webstoresoftwarepatternsca.R;
@@ -87,28 +89,38 @@ public class MainActivity extends AppCompatActivity {
         productRepository.getProducts(new ProductRepository.DataStatus() {
             @Override
             public void DataIsLoaded(List<Product> products, List<String> keys) {
+                for (final Product product : products) {
+                    CommentsRepository commentsRepository = new CommentsRepository(product.getProductId());
+                    commentsRepository.calculateAverageRating(new CommentsRepository.DataStatus() {
+                        @Override
+                        public void AverageRatingLoaded(float averageRating) {
+                            product.setAverageRating(averageRating);
+                            productAdapter.notifyDataSetChanged();
+                        }
+                        @Override
+                        public void DataIsLoaded(List<Comment> comments) {
+
+                        }
+
+                        @Override
+                        public void DataLoadFailed(DatabaseError databaseError) {
+                            Log.e("MainActivity", "Failed to load ratings: " + databaseError.getMessage());
+                        }
+                    });
+                }
+
                 productList.clear();
                 productList.addAll(products);
                 originalList = new ArrayList<>(productList);
                 productAdapter.notifyDataSetChanged();
-
-                productAdapter.setOnProductClickListener(new ProductAdapter.OnProductClickListener() {
-                    @Override
-                    public void onProductClick(Product product) {
-                        onProductSelected(product.getProductId());
-                    }
-                });
             }
 
             @Override
             public void DataIsInserted() {}
-
             @Override
             public void DataIsUpdated() {}
-
             @Override
             public void DataIsDeleted() {}
-
             @Override
             public void DataLoadFailed(DatabaseError databaseError) {
                 Log.w("MainActivity", "Failed to read value.", databaseError.toException());
