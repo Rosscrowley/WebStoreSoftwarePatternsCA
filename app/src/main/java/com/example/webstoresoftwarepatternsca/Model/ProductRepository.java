@@ -9,6 +9,8 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.MutableData;
+import com.google.firebase.database.Transaction;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
@@ -37,6 +39,7 @@ public class ProductRepository {
         void DataIsUpdated();
         void DataIsDeleted();
         void DataLoadFailed(DatabaseError databaseError);
+        void StockLevelLoaded(int stockLevel);
     }
 
     public void getProducts(final DataStatus dataStatus) {
@@ -128,6 +131,51 @@ public class ProductRepository {
         });
 
         return liveManufacturers;
+    }
+
+    public void getProductStock(String productId, final DataStatus callback) {
+        databaseReference.child(productId).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Product product = dataSnapshot.getValue(Product.class);
+                if (product != null && product.getStock() > 0) {
+                    callback.StockLevelLoaded(product.getStock());
+                } else {
+                    callback.StockLevelLoaded(0);
+                }
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                callback.DataLoadFailed(databaseError);
+            }
+        });
+    }
+
+    public void updateProductStock(String productId, int quantityChange) {
+        DatabaseReference productRef = databaseReference.child(productId).child("stock");
+        productRef.runTransaction(new Transaction.Handler() {
+            @Override
+            public Transaction.Result doTransaction(MutableData mutableData) {
+                Integer currentStock = mutableData.getValue(Integer.class);
+                if (currentStock == null) {
+                    return Transaction.success(mutableData);
+                }
+                int newStock = currentStock + quantityChange;
+                if (newStock < 0) {
+                    return Transaction.abort();
+                }
+                mutableData.setValue(newStock);
+                return Transaction.success(mutableData);
+            }
+            @Override
+            public void onComplete(DatabaseError databaseError, boolean committed, DataSnapshot dataSnapshot) {
+                if (committed) {
+                    Log.d("ProductRepository", "Stock updated.");
+                } else {
+                    Log.d("ProductRepository", "Failed to update stock.");
+                }
+            }
+        });
     }
 
 }

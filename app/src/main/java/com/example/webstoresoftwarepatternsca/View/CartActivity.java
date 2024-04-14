@@ -119,6 +119,8 @@ public class CartActivity extends AppCompatActivity {
                         public void DataLoadFailed(DatabaseError databaseError) {
 
                         }
+                        @Override
+                        public void StockLevelLoaded(int stockLevel) {}
                     });
                 }
             }

@@ -23,6 +23,7 @@ import com.example.webstoresoftwarepatternsca.Model.CartManager;
 import com.example.webstoresoftwarepatternsca.Model.Comment;
 import com.example.webstoresoftwarepatternsca.Model.CommentsRepository;
 import com.example.webstoresoftwarepatternsca.Model.Product;
+import com.example.webstoresoftwarepatternsca.Model.ProductRepository;
 import com.example.webstoresoftwarepatternsca.Model.UserSessionManager;
 import com.example.webstoresoftwarepatternsca.R;
 import com.google.firebase.database.DatabaseError;
@@ -96,8 +97,7 @@ public class ProductDetailFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 // Add product to basket here
-                CartManager.getInstance().addItemToCart(product.getProductId(), 1);
-                Toast.makeText(getContext(), "Added to cart", Toast.LENGTH_SHORT).show();
+                checkStockBeforeAddingToBasket(product);
             }
         });
 
@@ -182,4 +182,33 @@ public class ProductDetailFragment extends Fragment {
             }
         });
     }
+
+    private void checkStockBeforeAddingToBasket(Product product) {
+        ProductRepository productRepository = new ProductRepository();
+        productRepository.getProductStock(product.getProductId(), new ProductRepository.DataStatus() {
+            @Override
+            public void StockLevelLoaded(int stockLevel) {
+                if (stockLevel > 0) {
+                    CartManager.getInstance().addItemToCart(product.getProductId(), 1);
+                    Toast.makeText(getContext(), "Added to cart", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(getContext(), "Out of stock", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void DataLoadFailed(DatabaseError databaseError) {
+                Toast.makeText(getContext(), "Failed to load product details", Toast.LENGTH_SHORT).show();
+            }
+            @Override
+            public void DataIsLoaded(List<Product> products, List<String> keys) {}
+            @Override
+            public void DataIsInserted() {}
+            @Override
+            public void DataIsUpdated() {}
+            @Override
+            public void DataIsDeleted() {}
+        });
+    }
+
 }

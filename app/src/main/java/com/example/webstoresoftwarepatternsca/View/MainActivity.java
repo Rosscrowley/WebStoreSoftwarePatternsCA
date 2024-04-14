@@ -125,6 +125,8 @@ public class MainActivity extends AppCompatActivity {
             public void DataLoadFailed(DatabaseError databaseError) {
                 Log.w("MainActivity", "Failed to read value.", databaseError.toException());
             }
+            @Override
+            public void StockLevelLoaded(int stockLevel) {}
         });
 
 

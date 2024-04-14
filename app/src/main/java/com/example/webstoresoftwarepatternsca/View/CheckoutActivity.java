@@ -15,6 +15,7 @@ import com.example.webstoresoftwarepatternsca.Model.CartItem;
 import com.example.webstoresoftwarepatternsca.Model.CartRepository;
 import com.example.webstoresoftwarepatternsca.Model.Order;
 import com.example.webstoresoftwarepatternsca.Model.OrderRepository;
+import com.example.webstoresoftwarepatternsca.Model.ProductRepository;
 import com.example.webstoresoftwarepatternsca.Model.ShippingAddress;
 import com.example.webstoresoftwarepatternsca.Model.User;
 import com.example.webstoresoftwarepatternsca.Model.UserRepository;
@@ -43,6 +44,7 @@ public class CheckoutActivity extends AppCompatActivity {
     private OrderRepository orderRepository = new OrderRepository();
 
     private CartRepository cartRepository = new CartRepository();
+    private ProductRepository productRepository = new ProductRepository();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -143,28 +145,14 @@ public class CheckoutActivity extends AppCompatActivity {
         if (validateFields()) {
             Order order = createOrderFromInput();
             orderRepository.createOrder(order, new OrderRepository.OrderCreationCallback() {
-                UserRepository userRepository = new UserRepository();
                 @Override
                 public void onOrderCreated(Order createdOrder) {
-                    Toast.makeText(CheckoutActivity.this, "Order placed successfully!", Toast.LENGTH_SHORT).show();
+                    updateStockForOrderedItems(createdOrder.getCartItems());
                     String currentUserId = UserSessionManager.getInstance().getFirebaseUserId();
                     cartRepository.clearUserCart(currentUserId);
-                    CardDetail cardDetail = new CardDetail(
-                            cardNumberEditText.getText().toString().trim(),
-                            expiryDateEditText.getText().toString().trim(),
-                            cvvEditText.getText().toString().trim()
-                    );
 
-                    ShippingAddress shippingAddress = new ShippingAddress(
-                            addressLineEditText.getText().toString().trim(),
-                            cityEditText.getText().toString().trim(),
-                            postalCodeEditText.getText().toString().trim()
-                    );
-
-                    userRepository.updateUserCardDetails(currentUserId, cardDetail);
-                    userRepository.updateUserShippingAddress(currentUserId, shippingAddress);
+                    updateUserDetails(currentUserId);
                 }
-
                 @Override
                 public void onOrderCreationFailed(Exception e) {
                     Toast.makeText(CheckoutActivity.this, "Failed to place order: " + e.getMessage(), Toast.LENGTH_SHORT).show();
@@ -172,6 +160,29 @@ public class CheckoutActivity extends AppCompatActivity {
             });
         } else {
             Toast.makeText(this, "Please correct the errors before proceeding.", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void updateUserDetails(String userId) {
+        CardDetail cardDetail = new CardDetail(
+                cardNumberEditText.getText().toString().trim(),
+                expiryDateEditText.getText().toString().trim(),
+                cvvEditText.getText().toString().trim()
+        );
+
+        ShippingAddress shippingAddress = new ShippingAddress(
+                addressLineEditText.getText().toString().trim(),
+                cityEditText.getText().toString().trim(),
+                postalCodeEditText.getText().toString().trim()
+        );
+
+        userRepository.updateUserCardDetails(userId, cardDetail);
+        userRepository.updateUserShippingAddress(userId, shippingAddress);
+    }
+
+    private void updateStockForOrderedItems(List<CartItem> cartItems) {
+        for (CartItem item : cartItems) {
+            productRepository.updateProductStock(item.getProductId(), -item.getQuantity());
         }
     }
 

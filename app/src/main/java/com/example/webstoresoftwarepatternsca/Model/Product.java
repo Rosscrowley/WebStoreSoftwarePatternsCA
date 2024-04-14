@@ -9,9 +9,8 @@ public class Product implements Serializable {
     private String imageURL;
     private String manufacturer;
     private String category;
-
     private float averageRating;
-
+    private int stock;
     public Product() {
 
     }
@@ -47,4 +46,13 @@ public class Product implements Serializable {
     public void setAverageRating(float averageRating) {
         this.averageRating = averageRating;
     }
+
+    public int getStock() {
+        return stock;
+    }
+
+    public void setStock(int stock) {
+        this.stock = stock;
+    }
+
 }
