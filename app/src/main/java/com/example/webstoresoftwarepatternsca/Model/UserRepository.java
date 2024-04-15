@@ -57,7 +57,7 @@ public class UserRepository {
                     }
                 } else {
                     // User does not exist, create a new user profile
-                    User newUser = new User(userId, "email@example.com", null, null, null, "No Tier");
+                    User newUser = new User(userId, "email@example.com", null, null, null, "No Tier", false);
                     addUser(newUser);
                     listener.onUserFetched(newUser);
                 }

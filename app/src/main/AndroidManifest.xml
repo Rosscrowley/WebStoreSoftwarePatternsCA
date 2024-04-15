@@ -39,6 +39,14 @@
             android:name=".View.CheckoutActivity"
             android:exported="true">
         </activity>
+        <activity
+            android:name=".View.StockActivity"
+            android:exported="true">
+        </activity>
+        <activity
+            android:name=".View.CustomersActivity"
+            android:exported="true">
+        </activity>
     </application>
 
 </manifest>

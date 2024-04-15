@@ -19,8 +19,12 @@ import com.example.webstoresoftwarepatternsca.Model.Comment;
 import com.example.webstoresoftwarepatternsca.Model.CommentsRepository;
 import com.example.webstoresoftwarepatternsca.Model.Product;
 import com.example.webstoresoftwarepatternsca.Model.ProductRepository;
+import com.example.webstoresoftwarepatternsca.Model.User;
+import com.example.webstoresoftwarepatternsca.Model.UserSessionManager;
 import com.example.webstoresoftwarepatternsca.R;
+import com.example.webstoresoftwarepatternsca.ViewModel.AdminBottomNavDecorator;
 import com.example.webstoresoftwarepatternsca.ViewModel.AlphabeticalSortStrategy;
+import com.example.webstoresoftwarepatternsca.ViewModel.BottomNavDecorator;
 import com.example.webstoresoftwarepatternsca.ViewModel.CategoryFilterStrategy;
 import com.example.webstoresoftwarepatternsca.ViewModel.FeatureSortStrategy;
 import com.example.webstoresoftwarepatternsca.ViewModel.FilterStrategy;
@@ -28,6 +32,7 @@ import com.example.webstoresoftwarepatternsca.ViewModel.FilterStrategyFactory;
 import com.example.webstoresoftwarepatternsca.ViewModel.ManufacturerFilterStrategy;
 import com.example.webstoresoftwarepatternsca.ViewModel.PriceHighToLowSortStrategy;
 import com.example.webstoresoftwarepatternsca.ViewModel.PriceLowToHighSortStrategy;
+import com.example.webstoresoftwarepatternsca.ViewModel.RegularBottomNavDecorator;
 import com.example.webstoresoftwarepatternsca.ViewModel.SortStrategy;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.database.DataSnapshot;
@@ -52,6 +57,9 @@ public class MainActivity extends AppCompatActivity {
     private ProductRepository productRepository = new ProductRepository();
     private FilterStrategy currentFilterStrategy;
     private Spinner filterSpinner;
+    private BottomNavDecorator bottomNavDecorator;
+
+    private BottomNavigationView navView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,20 +70,9 @@ public class MainActivity extends AppCompatActivity {
         productsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         productAdapter = new ProductAdapter(this, productList);
 
+        navView = findViewById(R.id.nav_view);
 
-        BottomNavigationView navigation = findViewById(R.id.nav_view);
-        navigation.setOnNavigationItemSelectedListener(item -> {
-            int itemId = item.getItemId();
-            if (itemId == R.id.menu_item_home) {
-
-                return true;
-            } else if (itemId == R.id.menu_item_shopping_cart) {
-                openCartActivity();
-                return true;
-            }
-
-            return false;
-        });
+        setupBottomNavigationView();
         productAdapter.setOnProductClickListener(new ProductAdapter.OnProductClickListener() {
             @Override
             public void onProductClick(Product product) {
@@ -275,6 +272,58 @@ public class MainActivity extends AppCompatActivity {
         productList.clear();
         productList.addAll(originalList);
         productAdapter.notifyDataSetChanged();
+    }
+
+
+    private void setupBottomNavigationView() {
+        boolean isAdmin = checkIfUserIsAdmin();
+
+        // Determine the appropriate decorator based on user type
+        if (isAdmin) {
+            bottomNavDecorator = new AdminBottomNavDecorator();
+        } else {
+            bottomNavDecorator = new RegularBottomNavDecorator();
+        }
+
+
+        bottomNavDecorator.decorate(navView);
+
+        navView.setOnNavigationItemSelectedListener(item -> {
+
+            int itemId = item.getItemId();
+            if (itemId == R.id.menu_item_home) {
+
+                return true;
+            } else if (itemId == R.id.menu_item_customers) {
+
+                Intent customersIntent = new Intent(MainActivity.this, CustomersActivity.class);
+                startActivity(customersIntent);
+                return true;
+            } else if (itemId == R.id.menu_item_stock) {
+
+                Intent stockIntent = new Intent(MainActivity.this, StockActivity.class);
+                startActivity(stockIntent);
+                return true;
+            } else if (itemId == R.id.menu_item_shopping_cart) {
+
+                openCartActivity();
+                return true;
+            }
+            return false;
+        });
+    }
+    private boolean checkIfUserIsAdmin() {
+        UserSessionManager sessionManager = UserSessionManager.getInstance();
+
+        if (sessionManager.getCurrentUser() != null) {
+            User user = sessionManager.getCurrentUser();
+            boolean isAdmin = user.isAdmin();
+            return isAdmin;
+        } else {
+            Log.d("UserAdminCheck", "No user found in session manager");
+        }
+
+        return false;
     }
 }
 

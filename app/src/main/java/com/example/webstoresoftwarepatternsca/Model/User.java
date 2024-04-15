@@ -12,24 +12,23 @@ public class User {
     private String userId;
     private String email;
     private String name;
-
     private CardDetail cardDetail;
     private ShippingAddress shippingAddress;
-
     private double totalSpent = 0;
-
     private String loyaltyTier;
+    private boolean admin;
     public User() {
 
     }
 
-    public User(String userId, String email, String name, CardDetail cardDetail, ShippingAddress shippingAddress, String loyaltyTier) {
+    public User(String userId, String email, String name, CardDetail cardDetail, ShippingAddress shippingAddress, String loyaltyTier, Boolean isAdmin) {
         this.userId = userId;
         this.email = email;
         this.name = name;
         this.cardDetail = cardDetail;
         this.shippingAddress = shippingAddress;
         this.loyaltyTier = (loyaltyTier != null ? loyaltyTier : "No Tier");
+        this.admin = isAdmin;
      }
 
 
@@ -88,5 +87,13 @@ public class User {
             default:
                 return amount; // No discount
         }
+    }
+
+    public boolean isAdmin() {
+        return this.admin;
+    }
+
+    public void setAdmin(boolean admin) {
+        this.admin = admin; // Changed from admin = admin to this.admin = admin
     }
 }

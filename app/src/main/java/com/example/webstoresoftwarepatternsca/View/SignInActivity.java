@@ -35,7 +35,6 @@ public class SignInActivity extends AppCompatActivity {
         setContentView(R.layout.activity_sign_in);
 
         mAuth = FirebaseAuth.getInstance();
-
         authRepository = new AuthenticationRepository();
 
         emailEditText = findViewById(R.id.emailEntered);
@@ -64,13 +63,26 @@ public class SignInActivity extends AppCompatActivity {
                             @Override
                             public void onUserFetched(User user) {
                                 if (user == null) {
-                                    user = new User(userId, firebaseUser.getEmail(), null, null, null, "No Tier");
+                                    user = new User(userId, firebaseUser.getEmail(), null, null, null, "No Tier", false);
                                     userRepository.addUser(user);
                                 }
-                                UserSessionManager.getInstance().initializeSessionWithFirebaseUserId(userId);
-                                Intent intent = new Intent(SignInActivity.this, MainActivity.class);
-                                startActivity(intent);
-                                finish();
+
+                                // Initialize session using Singleton pattern
+                                UserSessionManager.getInstance().initializeSessionWithFirebaseUserId(userId, new UserSessionManager.UserFetchListener() {
+                                    @Override
+                                    public void onUserFetched(User user) {
+
+                                        Intent intent = new Intent(SignInActivity.this, MainActivity.class);
+                                        startActivity(intent);
+                                        finish();
+                                    }
+
+                                    @Override
+                                    public void onError(DatabaseError error) {
+                                        Log.e("SignInActivity", "Error initializing session: " + error.getMessage());
+                                        // Handle error if needed
+                                    }
+                                });
                             }
 
                             @Override

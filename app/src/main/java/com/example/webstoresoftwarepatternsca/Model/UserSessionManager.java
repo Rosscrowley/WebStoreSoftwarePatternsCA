@@ -1,9 +1,14 @@
 package com.example.webstoresoftwarepatternsca.Model;
 
+import android.util.Log;
+
+import com.google.firebase.database.DatabaseError;
+
 public class UserSessionManager {
     private static UserSessionManager instance;
     private User currentUser;
     private UserRepository userRepository;
+    private UserFetchListener fetchListener;
 
     private UserSessionManager() {
         userRepository = new UserRepository();
@@ -16,11 +21,20 @@ public class UserSessionManager {
         return instance;
     }
 
-    public void initializeSessionWithFirebaseUserId(String userId) {
-        currentUser = new User(userId);
-        userRepository.updateUserId(userId);
+    public void initializeSessionWithFirebaseUserId(String userId, UserFetchListener listener) {
+        userRepository.fetchUserById(userId, new UserRepository.UserFetchListener() {
+            @Override
+            public void onUserFetched(User user) {
+                currentUser = user;
+                listener.onUserFetched(user);
+            }
+            @Override
+            public void onError(DatabaseError error) {
+                Log.e("UserSessionManager", "Error fetching user: " + error.getMessage());
+                listener.onError(error);
+            }
+        });
     }
-
     public String getFirebaseUserId() {
         return currentUser != null ? currentUser.getUserId() : null;
     }
@@ -31,5 +45,10 @@ public class UserSessionManager {
 
     public User getCurrentUser() {
         return currentUser;
+    }
+
+    public interface UserFetchListener {
+        void onUserFetched(User user);
+        void onError(DatabaseError error);
     }
 }
