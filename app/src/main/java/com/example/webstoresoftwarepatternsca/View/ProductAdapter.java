@@ -17,26 +17,23 @@ import com.example.webstoresoftwarepatternsca.R;
 import com.squareup.picasso.Picasso;
 import java.util.List;
 
-public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductViewHolder> {
+public class ProductAdapter extends BaseAdapter<Product, ProductAdapter.ProductViewHolder> {
 
-    private List<Product> productList;
-    private LayoutInflater inflater;
-
-    // Listener for clicks
     private OnProductClickListener productClickListener;
 
-    // Constructor
     public ProductAdapter(Context context, List<Product> productList) {
-        this.inflater = LayoutInflater.from(context);
-        this.productList = productList;
+        super(context, productList);
     }
 
-    // Interface for click events
+    @Override
+    protected boolean itemMatches(Product product, String filterPattern) {
+        return product.getTitle().toLowerCase().contains(filterPattern);
+    }
+
     public interface OnProductClickListener {
         void onProductClick(Product product);
     }
 
-    // Setter for the click listener
     public void setOnProductClickListener(OnProductClickListener listener) {
         this.productClickListener = listener;
     }
@@ -44,31 +41,23 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
     @NonNull
     @Override
     public ProductViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View itemView = inflater.inflate(R.layout.item_product, parent, false);
+        View itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_product, parent, false);
         return new ProductViewHolder(itemView);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ProductViewHolder holder, int position) {
-        Product product = productList.get(position);
+    protected void bindItem(ProductViewHolder holder, Product product) {
         holder.productNameTextView.setText(product.getTitle());
         holder.productPriceTextView.setText("€" + product.getPrice());
         Picasso.get().load(product.getImageUrl()).into(holder.productImageView);
         holder.productRatingBar.setRating(product.getAverageRating());
 
-        holder.itemView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (productClickListener != null) {
-                    productClickListener.onProductClick(product);
-                }
+
+        holder.itemView.setOnClickListener(v -> {
+            if (productClickListener != null) {
+                productClickListener.onProductClick(product);
             }
         });
-    }
-
-    @Override
-    public int getItemCount() {
-        return productList.size();
     }
 
     public static class ProductViewHolder extends RecyclerView.ViewHolder {

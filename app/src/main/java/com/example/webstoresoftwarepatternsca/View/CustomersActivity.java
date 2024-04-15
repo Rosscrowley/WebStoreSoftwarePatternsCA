@@ -1,5 +1,6 @@
 package com.example.webstoresoftwarepatternsca.View;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
@@ -16,6 +17,7 @@ import com.example.webstoresoftwarepatternsca.R;
 import com.example.webstoresoftwarepatternsca.ViewModel.UserCollection;
 import com.example.webstoresoftwarepatternsca.ViewModel.UserIterator;
 import com.example.webstoresoftwarepatternsca.ViewModel.UserList;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.database.DatabaseError;
 
 import java.util.ArrayList;
@@ -27,10 +29,31 @@ public class CustomersActivity extends AppCompatActivity implements CustomerAdap
     private CustomerAdapter adapter;
     private UserRepository userRepository = new UserRepository();
 
+    private BottomNavigationView navView;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_customers);
+
+        navView = findViewById(R.id.nav_view);
+
+        navView.setOnNavigationItemSelectedListener(item -> {
+
+            int itemId = item.getItemId();
+           if (itemId == R.id.menu_item_home) {
+
+                Intent homeIntent = new Intent(CustomersActivity.this, MainActivity.class);
+                startActivity(homeIntent);
+                return true;
+            } else if (itemId == R.id.menu_item_stock) {
+
+                Intent stockIntent = new Intent(CustomersActivity.this, StockActivity.class);
+                startActivity(stockIntent);
+                return true;
+            }
+            return false;
+        });
 
         recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
