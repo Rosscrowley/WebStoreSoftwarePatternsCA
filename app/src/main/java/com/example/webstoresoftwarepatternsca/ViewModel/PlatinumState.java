@@ -10,4 +10,9 @@ public class PlatinumState implements LoyaltyState {
     public double applyDiscount(double amount) {
         return amount * 0.85;  // 15% discount
     }
+
+    @Override
+    public DiscountStrategy getDiscountStrategy() {
+        return amount -> amount * 0.85;
+    }
 }

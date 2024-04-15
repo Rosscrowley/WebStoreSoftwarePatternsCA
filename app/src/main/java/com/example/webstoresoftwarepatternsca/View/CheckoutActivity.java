@@ -6,6 +6,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -25,12 +26,17 @@ import com.example.webstoresoftwarepatternsca.ViewModel.AddressValidationStrateg
 import com.example.webstoresoftwarepatternsca.ViewModel.CVVValidationStrategy;
 import com.example.webstoresoftwarepatternsca.ViewModel.CardNumberValidationStrategy;
 import com.example.webstoresoftwarepatternsca.ViewModel.DateValidationStrategy;
+import com.example.webstoresoftwarepatternsca.ViewModel.GoldState;
+import com.example.webstoresoftwarepatternsca.ViewModel.NoTierState;
+import com.example.webstoresoftwarepatternsca.ViewModel.PlatinumState;
 import com.example.webstoresoftwarepatternsca.ViewModel.PostalCodeValidationStrategy;
+import com.example.webstoresoftwarepatternsca.ViewModel.SilverState;
 import com.example.webstoresoftwarepatternsca.ViewModel.ValidationStrategy;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.List;
+import java.util.Locale;
 
 public class CheckoutActivity extends AppCompatActivity {
 
@@ -45,6 +51,8 @@ public class CheckoutActivity extends AppCompatActivity {
 
     private CartRepository cartRepository = new CartRepository();
     private ProductRepository productRepository = new ProductRepository();
+
+    private TextView totalPriceTextView;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -59,6 +67,7 @@ public class CheckoutActivity extends AppCompatActivity {
         postalCodeEditText = findViewById(R.id.postalCodeEditText);
         confirmPurchaseButton = findViewById(R.id.btnConfirmPurchase);
         confirmPurchaseButton = findViewById(R.id.btnConfirmPurchase);
+        totalPriceTextView = findViewById(R.id.totalPriceTextView);
 
         fetchAndPrepopulateUserDetails();
         confirmPurchaseButton.setOnClickListener(new View.OnClickListener() {
@@ -79,6 +88,10 @@ public class CheckoutActivity extends AppCompatActivity {
                 if (user != null) {
                     currentUser = user;
                     Log.d("CheckoutActivity", "User fetched successfully.");
+
+                    double totalPrice = getIntent().getDoubleExtra("totalPrice", 0);
+                    double discountedPrice = currentUser.applyDiscount(totalPrice);
+                    totalPriceTextView.setText(String.format(Locale.US, "€%.2f", discountedPrice));
 
                     if (user.getCardDetail() == null) Log.d("CheckoutActivity", "Card detail is null.");
                     if (user.getShippingAddress() == null) Log.d("CheckoutActivity", "Shipping address is null.");
@@ -143,24 +156,65 @@ public class CheckoutActivity extends AppCompatActivity {
 
     private void confirmPurchase() {
         if (validateFields()) {
-            Order order = createOrderFromInput();
-            orderRepository.createOrder(order, new OrderRepository.OrderCreationCallback() {
-                @Override
-                public void onOrderCreated(Order createdOrder) {
-                    updateStockForOrderedItems(createdOrder.getCartItems());
-                    String currentUserId = UserSessionManager.getInstance().getFirebaseUserId();
-                    cartRepository.clearUserCart(currentUserId);
-
-                    updateUserDetails(currentUserId);
-                }
-                @Override
-                public void onOrderCreationFailed(Exception e) {
-                    Toast.makeText(CheckoutActivity.this, "Failed to place order: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                }
-            });
+            fetchUserDetailsAndConfirmPurchase(UserSessionManager.getInstance().getFirebaseUserId());
         } else {
             Toast.makeText(this, "Please correct the errors before proceeding.", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    private void fetchUserDetailsAndConfirmPurchase(String userId) {
+        userRepository.fetchUserById(userId, new UserRepository.UserFetchListener() {
+            @Override
+            public void onUserFetched(User user) {
+                currentUser = user; // Update the current user with the fetched details
+                if (currentUser != null) {
+                    // Check and update loyalty state based on the total spent
+                    updateLoyaltyState(currentUser);
+
+                    double totalPrice = getIntent().getDoubleExtra("totalPrice", 0);
+                    double discountedPrice = currentUser.applyDiscount(totalPrice);
+                    Log.d("CheckoutActivity", "Total Price: " + totalPrice + " Discounted: " + discountedPrice);
+                    processOrder(createOrderFromInput(discountedPrice));
+                }
+            }
+
+            @Override
+            public void onError(DatabaseError error) {
+                Toast.makeText(CheckoutActivity.this, "Failed to fetch user details: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+
+    private void processOrder(Order order) {
+        orderRepository.createOrder(order, new OrderRepository.OrderCreationCallback() {
+            @Override
+            public void onOrderCreated(Order createdOrder) {
+                updateStockForOrderedItems(createdOrder.getCartItems());
+                updateUserDetails(currentUser.getUserId());
+                updateUserDetailsAndSpending(currentUser.getUserId(), createdOrder.getTotalAmount());
+                cartRepository.clearUserCart(currentUser.getUserId());
+            }
+
+            @Override
+            public void onOrderCreationFailed(Exception e) {
+                Toast.makeText(CheckoutActivity.this, "Failed to place order: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void updateUserDetailsAndSpending(String userId, double amountSpent) {
+        userRepository.updateUserSpendingAndLoyalty(userId, amountSpent, new UserRepository.UserFetchListener() {
+            @Override
+            public void onUserFetched(User user) {
+                Toast.makeText(CheckoutActivity.this, "Thank you for your purchase! Your loyalty status has been updated.", Toast.LENGTH_LONG).show();
+            }
+
+            @Override
+            public void onError(DatabaseError error) {
+                Log.e("CheckoutActivity", "Error updating user spending and loyalty: " + error.getMessage());
+            }
+        });
     }
 
     private void updateUserDetails(String userId) {
@@ -186,7 +240,7 @@ public class CheckoutActivity extends AppCompatActivity {
         }
     }
 
-    private Order createOrderFromInput() {
+    private Order createOrderFromInput(double discountedPrice) {
 
         String cardNumber = cardNumberEditText.getText().toString().trim();
         String expiryDate = expiryDateEditText.getText().toString().trim();
@@ -196,16 +250,30 @@ public class CheckoutActivity extends AppCompatActivity {
         String postalCode = postalCodeEditText.getText().toString().trim();
 
         List<CartItem> cartItems = getIntent().getParcelableArrayListExtra("cartItems");
-        double totalPrice = getIntent().getDoubleExtra("totalPrice", 0);
 
         ShippingAddress sa = new ShippingAddress(addressLine, city, postalCode);
         CardDetail cd = new CardDetail(cardNumber, expiryDate, cvv);
         String currentUserId = UserSessionManager.getInstance().getFirebaseUserId();
 
         String orderId = FirebaseDatabase.getInstance().getReference().child("orders").push().getKey();
-        Order order = new Order(orderId, currentUserId, cartItems, totalPrice, cd, sa);
+        Order order = new Order(orderId, currentUserId, cartItems, discountedPrice, cd, sa);
 
         return order;
+    }
+
+    private void updateLoyaltyState(User user) {
+        double totalSpent = user.getTotalSpent();
+        if (totalSpent >= 500 && !"Platinum".equals(user.getLoyaltyTier())) {
+            user.setLoyaltyTier("Platinum");
+        } else if (totalSpent >= 250 && !"Gold".equals(user.getLoyaltyTier())) {
+            user.setLoyaltyTier("Gold");
+        } else if (totalSpent >= 100 && !"Silver".equals(user.getLoyaltyTier())) {
+            user.setLoyaltyTier("Silver");
+        } else if (totalSpent < 100 && !"No Tier".equals(user.getLoyaltyTier())) {
+            user.setLoyaltyTier("No Tier");
+        }
+        // Persist the changes to Firebase if necessary
+        // userRepository.updateUserLoyaltyTier(userId, user.getLoyaltyTier());
     }
 
 }

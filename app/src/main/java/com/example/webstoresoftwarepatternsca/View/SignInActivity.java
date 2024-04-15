@@ -51,23 +51,21 @@ public class SignInActivity extends AppCompatActivity {
         loginButton.setOnClickListener(view -> {
             String email = emailEditText.getText().toString().trim();
             String password = passwordEditText.getText().toString().trim();
-            // Validate inputs before attempting to log in
 
             authRepository.signInUser(email, password, task -> {
                 if (task.isSuccessful()) {
                     Log.d("LoginActivity", "signInWithEmail:success");
-                    FirebaseUser firebaseUser = mAuth.getCurrentUser(); // Get the Firebase user
+                    FirebaseUser firebaseUser = mAuth.getCurrentUser();
 
                     if (firebaseUser != null) {
-                        String userId = firebaseUser.getUid(); // Get Firebase user ID
+                        String userId = firebaseUser.getUid();
                         UserRepository userRepository = new UserRepository();
-
                         userRepository.fetchUserById(userId, new UserRepository.UserFetchListener() {
                             @Override
                             public void onUserFetched(User user) {
                                 if (user == null) {
-                                    User newUser = new User(userId, firebaseUser.getEmail(), null, null, null);
-                                    userRepository.addUser(newUser); // Save the new user to the database
+                                    user = new User(userId, firebaseUser.getEmail(), null, null, null, "No Tier");
+                                    userRepository.addUser(user);
                                 }
                                 UserSessionManager.getInstance().initializeSessionWithFirebaseUserId(userId);
                                 Intent intent = new Intent(SignInActivity.this, MainActivity.class);
@@ -77,7 +75,7 @@ public class SignInActivity extends AppCompatActivity {
 
                             @Override
                             public void onError(DatabaseError error) {
-
+                                Log.e("LoginActivity", "Error fetching user: " + error.getMessage());
                             }
                         });
                     }

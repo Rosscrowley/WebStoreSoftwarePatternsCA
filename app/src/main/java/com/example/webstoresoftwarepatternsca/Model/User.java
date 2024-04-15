@@ -1,9 +1,12 @@
 package com.example.webstoresoftwarepatternsca.Model;
 
 import com.example.webstoresoftwarepatternsca.ViewModel.DiscountStrategy;
+import com.example.webstoresoftwarepatternsca.ViewModel.GoldState;
 import com.example.webstoresoftwarepatternsca.ViewModel.HolidayDiscountDecorator;
 import com.example.webstoresoftwarepatternsca.ViewModel.LoyaltyState;
 import com.example.webstoresoftwarepatternsca.ViewModel.NoTierState;
+import com.example.webstoresoftwarepatternsca.ViewModel.PlatinumState;
+import com.example.webstoresoftwarepatternsca.ViewModel.SilverState;
 
 public class User {
     private String userId;
@@ -14,22 +17,21 @@ public class User {
     private ShippingAddress shippingAddress;
 
     private double totalSpent = 0;
-    private LoyaltyState loyaltyState;
 
-    private DiscountStrategy discountStrategy;
+    private String loyaltyTier;
     public User() {
-        this.loyaltyState = new NoTierState();
 
     }
 
-    public User(String userId, String email, String name, CardDetail cardDetail, ShippingAddress shippingAddress) {
-        this();
+    public User(String userId, String email, String name, CardDetail cardDetail, ShippingAddress shippingAddress, String loyaltyTier) {
         this.userId = userId;
         this.email = email;
         this.name = name;
         this.cardDetail = cardDetail;
         this.shippingAddress = shippingAddress;
-    }
+        this.loyaltyTier = (loyaltyTier != null ? loyaltyTier : "No Tier");
+     }
+
 
     public User(String userId) {
         this.userId = userId;
@@ -60,29 +62,31 @@ public class User {
 
     public void addSpending(double amount) {
         this.totalSpent += amount;
-        this.loyaltyState.checkStatus(this);
     }
 
-    public void setLoyaltyState(LoyaltyState state) {
-        this.loyaltyState = state;
-    }
 
     public double getTotalSpent() {
         return totalSpent;
     }
 
-    public void setDiscountStrategy(DiscountStrategy discountStrategy) {
-        this.discountStrategy = discountStrategy;
+    public String getLoyaltyTier() {
+        return loyaltyTier;
+    }
+
+    public void setLoyaltyTier(String loyaltyTier) {
+        this.loyaltyTier = loyaltyTier;
     }
 
     public double applyDiscount(double amount) {
-        if (discountStrategy != null) {
-            return discountStrategy.applyDiscount(amount);
+          switch (this.loyaltyTier) {
+            case "Platinum":
+                return amount * 0.85;
+            case "Gold":
+                return amount * 0.90;
+            case "Silver":
+                return amount * 0.95;
+            default:
+                return amount; // No discount
         }
-        return amount;
-    }
-
-    public void activateHolidayPromotion() {
-        this.discountStrategy = new HolidayDiscountDecorator(this.discountStrategy);
     }
 }

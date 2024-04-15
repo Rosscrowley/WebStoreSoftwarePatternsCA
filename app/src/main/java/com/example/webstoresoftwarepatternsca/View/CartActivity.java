@@ -25,6 +25,7 @@ import com.google.gson.Gson;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 public class CartActivity extends AppCompatActivity {
@@ -35,6 +36,7 @@ public class CartActivity extends AppCompatActivity {
     private Map<String, Product> productMap = new HashMap<>();
     private ProductRepository productRepository;
     private CartRepository cartRepository;
+    private TextView totalPrice;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -43,6 +45,9 @@ public class CartActivity extends AppCompatActivity {
 
         cartRepository = new CartRepository();
         productRepository = new ProductRepository();
+
+        totalPrice = findViewById(R.id.price);
+
 
         ImageButton closeButton = findViewById(R.id.closeButton);
         closeButton.setOnClickListener(new View.OnClickListener() {
@@ -79,6 +84,8 @@ public class CartActivity extends AppCompatActivity {
                 goToCheckout();
             }
         });
+
+
     }
 
     private void populateCartItems() {
@@ -98,33 +105,41 @@ public class CartActivity extends AppCompatActivity {
                             cartItems.clear();
                             cartItems.addAll(newCartItems);
                             adapter.notifyDataSetChanged();
+
+                            // Update the total price after cart items and product map are updated
+                            updateTotalPrice();
                         }
 
                         @Override
                         public void DataIsInserted() {
-
                         }
 
                         @Override
                         public void DataIsUpdated() {
-
                         }
 
                         @Override
                         public void DataIsDeleted() {
-
                         }
 
                         @Override
                         public void DataLoadFailed(DatabaseError databaseError) {
+                        }
+
+                        @Override
+                        public void StockLevelLoaded(int stockLevel) {
 
                         }
-                        @Override
-                        public void StockLevelLoaded(int stockLevel) {}
                     });
                 }
             }
         });
+    }
+
+    private void updateTotalPrice() {
+        if (totalPrice != null) {
+            totalPrice.setText(String.format(Locale.US, "€%.2f", calculateTotalPrice(cartItems, productMap)));
+        }
     }
     private void goToCheckout() {
         double totalPrice = calculateTotalPrice(cartItems, productMap);
