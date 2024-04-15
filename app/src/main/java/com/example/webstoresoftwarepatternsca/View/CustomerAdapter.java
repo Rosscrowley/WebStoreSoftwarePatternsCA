@@ -13,8 +13,14 @@ import java.util.List;
 public class CustomerAdapter extends RecyclerView.Adapter<CustomerAdapter.CustomerViewHolder> {
 
     private List<User> userList;
-    public CustomerAdapter(List<User> userList) {
+    private OnItemClickListener listener;
+
+    public interface OnItemClickListener {
+        void onItemClick(User user);
+    }
+    public CustomerAdapter(List<User> userList, OnItemClickListener listener) {
         this.userList = userList;
+        this.listener = listener;
     }
 
     public void setUserList(List<User> userList) {
@@ -37,6 +43,7 @@ public class CustomerAdapter extends RecyclerView.Adapter<CustomerAdapter.Custom
     public void onBindViewHolder(@NonNull CustomerViewHolder holder, int position) {
         User user = userList.get(position);
         holder.bind(user);
+        holder.itemView.setOnClickListener(v -> listener.onItemClick(user));
     }
     @Override
     public int getItemCount() {

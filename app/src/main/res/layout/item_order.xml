@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/textViewOrderId"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Order ID"
+        tools:text="Order ID: -NvCpe9UJH6jmRtEVYYl"
+        android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
+
+    <TextView
+        android:id="@+id/textViewTotalAmount"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Total Amount"
+        tools:text="Total: $129.98"
+        android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
+
+    <TextView
+        android:id="@+id/textViewShippingAddress"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Shipping Address"
+        tools:text="Address: sarget, sdtgbdxtb, A55 V222"
+        android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
+
+    <TextView
+        android:id="@+id/textViewCardDetails"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Card Details"
+        tools:text="Card: ****4444, Expiry: 02/03/24"
+        android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
+
+</LinearLayout>

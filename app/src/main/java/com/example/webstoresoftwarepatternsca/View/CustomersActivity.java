@@ -6,6 +6,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -20,7 +21,7 @@ import com.google.firebase.database.DatabaseError;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CustomersActivity extends AppCompatActivity {
+public class CustomersActivity extends AppCompatActivity implements CustomerAdapter.OnItemClickListener {
 
     private RecyclerView recyclerView;
     private CustomerAdapter adapter;
@@ -33,9 +34,13 @@ public class CustomersActivity extends AppCompatActivity {
 
         recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new CustomerAdapter(new ArrayList<>());
+        adapter = new CustomerAdapter(new ArrayList<>(), this);
         recyclerView.setAdapter(adapter);
 
+
+        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recyclerView.getContext(),
+                DividerItemDecoration.VERTICAL);
+        recyclerView.addItemDecoration(dividerItemDecoration);
         // Fetch users from the database
         fetchUsers();
     }
@@ -67,5 +72,18 @@ public class CustomersActivity extends AppCompatActivity {
                 Toast.makeText(CustomersActivity.this, "Failed to fetch users", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    @Override
+    public void onItemClick(User user) {
+        OrdersFragment ordersFragment = new OrdersFragment();
+        Bundle args = new Bundle();
+        args.putString("userId", user.getUserId());
+        ordersFragment.setArguments(args);
+
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.fragment_container, ordersFragment) // Ensure you have a container in your layout
+                .addToBackStack(null)
+                .commit();
     }
 }

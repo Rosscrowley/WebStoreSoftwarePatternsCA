@@ -10,6 +10,10 @@ public class Order {
     private CardDetail cardDetail;
     private ShippingAddress shippingAddress;
 
+    public Order() {
+
+    }
+
     public Order(String orderId, String userId, List<CartItem> cartItems, double totalAmount, CardDetail cardDetail, ShippingAddress shippingAddress) {
         this.orderId = orderId;
         this.userId = userId;
