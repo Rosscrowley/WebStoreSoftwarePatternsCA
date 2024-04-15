@@ -14,7 +14,9 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class UserRepository {
@@ -73,6 +75,7 @@ public class UserRepository {
     public interface UserFetchListener {
         void onUserFetched(User user);
         void onError(DatabaseError error);
+        void onUsersFetched(List<User> userList);
     }
 
     public void updateUserCardDetails(String userId, CardDetail cardDetail) {
@@ -122,6 +125,28 @@ public class UserRepository {
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
                 Log.e("UserRepository", "Failed to fetch user for spending update.", error.toException());
+            }
+        });
+    }
+
+    public void getAllUsers(UserFetchListener listener) {
+        databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                List<User> userList = new ArrayList<>();
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    User user = snapshot.getValue(User.class);
+                    if (user != null) {
+                        userList.add(user);
+                    }
+                }
+                listener.onUsersFetched(userList);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                listener.onError(databaseError);
+                Log.e("UserRepository", "Failed to fetch users: " + databaseError.getMessage());
             }
         });
     }

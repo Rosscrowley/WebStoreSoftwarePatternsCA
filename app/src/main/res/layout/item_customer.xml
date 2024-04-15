@@ -1,0 +1,59 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/text_customer_id_label"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Customer ID: "
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/text_customer_id"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="" />
+
+    <TextView
+        android:id="@+id/text_email_label"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Email: "
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/text_email"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="" />
+
+    <TextView
+        android:id="@+id/text_total_spent_label"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Total Spent: "
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/text_total_spent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="" />
+
+    <TextView
+        android:id="@+id/text_loyalty_tier_label"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Loyalty Tier: "
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/text_loyalty_tier"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="" />
+
+</LinearLayout>

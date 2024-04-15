@@ -21,6 +21,8 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseError;
 
+import java.util.List;
+
 public class SignInActivity extends AppCompatActivity {
 
     private EditText emailEditText, passwordEditText;
@@ -88,6 +90,11 @@ public class SignInActivity extends AppCompatActivity {
                             @Override
                             public void onError(DatabaseError error) {
                                 Log.e("LoginActivity", "Error fetching user: " + error.getMessage());
+                            }
+
+                            @Override
+                            public void onUsersFetched(List<User> userList) {
+
                             }
                         });
                     }

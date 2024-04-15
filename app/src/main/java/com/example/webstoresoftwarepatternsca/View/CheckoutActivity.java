@@ -122,6 +122,11 @@ public class CheckoutActivity extends AppCompatActivity {
             public void onError(DatabaseError error) {
 
             }
+
+            @Override
+            public void onUsersFetched(List<User> userList) {
+
+            }
         });
     }
 
@@ -182,6 +187,11 @@ public class CheckoutActivity extends AppCompatActivity {
             public void onError(DatabaseError error) {
                 Toast.makeText(CheckoutActivity.this, "Failed to fetch user details: " + error.getMessage(), Toast.LENGTH_SHORT).show();
             }
+
+            @Override
+            public void onUsersFetched(List<User> userList) {
+
+            }
         });
     }
 
@@ -213,6 +223,11 @@ public class CheckoutActivity extends AppCompatActivity {
             @Override
             public void onError(DatabaseError error) {
                 Log.e("CheckoutActivity", "Error updating user spending and loyalty: " + error.getMessage());
+            }
+
+            @Override
+            public void onUsersFetched(List<User> userList) {
+
             }
         });
     }
