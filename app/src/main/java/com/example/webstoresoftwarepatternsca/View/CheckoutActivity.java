@@ -1,6 +1,7 @@
 package com.example.webstoresoftwarepatternsca.View;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -218,6 +219,9 @@ public class CheckoutActivity extends AppCompatActivity {
             @Override
             public void onUserFetched(User user) {
                 Toast.makeText(CheckoutActivity.this, "Thank you for your purchase! Your loyalty status has been updated.", Toast.LENGTH_LONG).show();
+                Intent mainActIntent = new Intent(CheckoutActivity.this, MainActivity.class);
+                startActivity(mainActIntent);
+                finish();
             }
 
             @Override

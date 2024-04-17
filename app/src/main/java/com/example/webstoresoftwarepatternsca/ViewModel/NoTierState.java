@@ -8,7 +8,6 @@ public class NoTierState implements LoyaltyState {
           //  user.setLoyaltyState(new SilverState());
         }
     }
-
     public double applyDiscount(double amount) {
         return amount;  // No discount for no tier
     }

@@ -27,7 +27,9 @@ public class ProductAdapter extends BaseAdapter<Product, ProductAdapter.ProductV
 
     @Override
     protected boolean itemMatches(Product product, String filterPattern) {
-        return product.getTitle().toLowerCase().contains(filterPattern);
+        boolean matches = product.getTitle().toLowerCase().contains(filterPattern.toLowerCase());
+        Log.d("Filtering", "Testing Item: " + product.getTitle() + " for pattern " + filterPattern + " Result: " + matches);
+        return matches;
     }
 
     public interface OnProductClickListener {

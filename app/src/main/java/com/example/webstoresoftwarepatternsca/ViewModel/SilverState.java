@@ -8,7 +8,6 @@ public class SilverState implements LoyaltyState {
           //  user.setLoyaltyState(new GoldState());
         }
     }
-
     public double applyDiscount(double amount) {
         return amount * 0.95;  // 5% discount
     }

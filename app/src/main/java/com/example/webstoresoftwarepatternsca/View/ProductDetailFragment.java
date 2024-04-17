@@ -24,6 +24,7 @@ import com.example.webstoresoftwarepatternsca.Model.Comment;
 import com.example.webstoresoftwarepatternsca.Model.CommentsRepository;
 import com.example.webstoresoftwarepatternsca.Model.Product;
 import com.example.webstoresoftwarepatternsca.Model.ProductRepository;
+import com.example.webstoresoftwarepatternsca.Model.User;
 import com.example.webstoresoftwarepatternsca.Model.UserSessionManager;
 import com.example.webstoresoftwarepatternsca.R;
 import com.google.firebase.database.DatabaseError;
@@ -76,6 +77,15 @@ public class ProductDetailFragment extends Fragment {
         ((TextView) view.findViewById(R.id.product_detail_category)).setText(product.getCategory());
         Picasso.get().load(product.getImageUrl()).into((ImageView) view.findViewById(R.id.product_detail_image));
 
+        if (checkIfUserIsAdmin()) {
+            // Disable adding to basket and leaving comments
+            view.findViewById(R.id.add_to_basket_button).setVisibility(View.GONE);
+            view.findViewById(R.id.leaveCommentTextView).setVisibility(View.GONE);
+        } else {
+            // Allow interactions for non-admin users
+            view.findViewById(R.id.add_to_basket_button).setOnClickListener(v -> checkStockBeforeAddingToBasket(product));
+            view.findViewById(R.id.leaveCommentTextView).setOnClickListener(v -> showCommentDialog());
+        }
 
         commentsAdapter = new CommentsAdapter(new ArrayList<>());
         commentsRecyclerView.setAdapter(commentsAdapter);
@@ -209,6 +219,20 @@ public class ProductDetailFragment extends Fragment {
             @Override
             public void DataIsDeleted() {}
         });
+    }
+
+    private boolean checkIfUserIsAdmin() {
+        UserSessionManager sessionManager = UserSessionManager.getInstance();
+
+        if (sessionManager.getCurrentUser() != null) {
+            User user = sessionManager.getCurrentUser();
+            boolean isAdmin = user.isAdmin();
+            return isAdmin;
+        } else {
+            Log.d("UserAdminCheck", "No user found in session manager");
+        }
+
+        return false;
     }
 
 }

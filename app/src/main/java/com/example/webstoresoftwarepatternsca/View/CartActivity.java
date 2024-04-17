@@ -3,6 +3,7 @@ package com.example.webstoresoftwarepatternsca.View;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Parcelable;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
@@ -48,105 +49,105 @@ public class CartActivity extends AppCompatActivity {
 
         totalPrice = findViewById(R.id.price);
 
-
         ImageButton closeButton = findViewById(R.id.closeButton);
-        closeButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                finish();
-            }
-        });
+        closeButton.setOnClickListener(v -> finish());
 
         recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        populateCartItems();
-
         adapter = new CartItemAdapter(this, cartItems, productMap, new CartItemAdapter.OnItemRemoveListener() {
             @Override
-            public void onItemRemoved(CartItem cartItem) {
-
-
+            public void onItemRemoved(CartItem cartItem, int position) {
                 String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-                String productId = cartItem.getProductId();
-                cartRepository.removeOneItemFromCart(currentUserId, productId);
-                cartItems.remove(cartItem);
-                adapter.notifyDataSetChanged();
+                cartRepository.removeOneItemFromCart(currentUserId, cartItem.getProductId(), new CartRepository.UpdateCartCallback() {
+
+                    @Override
+                    public void onComplete() {
+                        runOnUiThread(() -> {
+                            if (position < cartItems.size() && position >= 0) {
+                                CartItem currentCartItem = cartItems.get(position);
+                                if (currentCartItem.getProductId().equals(cartItem.getProductId())) {
+                                    if (currentCartItem.getQuantity() <= 1) {
+                                        cartItems.remove(position);
+                                        adapter.notifyItemRemoved(position);
+                                        if (cartItems.isEmpty()) {
+                                            // Handle empty cart scenario, maybe show a message or disable checkout
+                                        }
+                                    } else {
+                                        currentCartItem.setQuantity(currentCartItem.getQuantity() - 1);
+                                        adapter.notifyItemChanged(position);
+                                    }
+                                    updateTotalPrice();
+                                } else {
+                                    Log.e("CartItemAdapter", "Error: The cart item at position has changed");
+                                }
+                            } else {
+                                Log.e("CartItemAdapter", "Error: The position " + position + " is out of cart items list bounds, list size: " + cartItems.size());
+                            }
+                        });
+                    }
+                });
             }
         });
+
         recyclerView.setAdapter(adapter);
+        populateCartItems();
 
         Button checkoutButton = findViewById(R.id.CheckoutButton);
-        checkoutButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Handle the checkout process
-                goToCheckout();
-            }
-        });
-
-
+        checkoutButton.setOnClickListener(v -> goToCheckout());
     }
 
     private void populateCartItems() {
         String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        cartRepository.getCartItems(currentUserId).observe(this, new Observer<List<CartItem>>() {
-            @Override
-            public void onChanged(List<CartItem> newCartItems) {
-                for (CartItem cartItem : newCartItems) {
-                    String productId = cartItem.getProductId();
+        cartRepository.getCartItems(currentUserId).observe(this, newCartItems -> {
+            productMap.clear();
+            cartItems.clear();
+            cartItems.addAll(newCartItems);
 
-                    productRepository.getProduct(productId, new ProductRepository.DataStatus() {
-                        @Override
-                        public void DataIsLoaded(List<Product> products, List<String> keys) {
-                            for (Product product : products) {
-                                productMap.put(product.getProductId(), product);
-                            }
-                            cartItems.clear();
-                            cartItems.addAll(newCartItems);
-                            adapter.notifyDataSetChanged();
-
-                            // Update the total price after cart items and product map are updated
-                            updateTotalPrice();
+            for (CartItem cartItem : newCartItems) {
+                String productId = cartItem.getProductId();
+                productRepository.getProduct(productId, new ProductRepository.DataStatus() {
+                    @Override
+                    public void DataIsLoaded(List<Product> products, List<String> keys) {
+                        for (Product product : products) {
+                            productMap.put(product.getProductId(), product);
                         }
+                        adapter.notifyDataSetChanged();
+                        updateTotalPrice();
+                    }
 
-                        @Override
-                        public void DataIsInserted() {
-                        }
+                    @Override
+                    public void DataIsInserted() {
 
-                        @Override
-                        public void DataIsUpdated() {
-                        }
+                    }
 
-                        @Override
-                        public void DataIsDeleted() {
-                        }
+                    @Override
+                    public void DataIsUpdated() {
 
-                        @Override
-                        public void DataLoadFailed(DatabaseError databaseError) {
-                        }
+                    }
 
-                        @Override
-                        public void StockLevelLoaded(int stockLevel) {
+                    @Override
+                    public void DataIsDeleted() {
 
-                        }
-                    });
-                }
+                    }
+
+                    @Override
+                    public void DataLoadFailed(DatabaseError databaseError) {
+
+                    }
+
+                    @Override
+                    public void StockLevelLoaded(int stockLevel) {
+
+                    }
+                });
             }
         });
     }
 
     private void updateTotalPrice() {
-        if (totalPrice != null) {
-            totalPrice.setText(String.format(Locale.US, "€%.2f", calculateTotalPrice(cartItems, productMap)));
-        }
-    }
-    private void goToCheckout() {
-        double totalPrice = calculateTotalPrice(cartItems, productMap);
-        Intent checkoutIntent = new Intent(CartActivity.this, CheckoutActivity.class);
-        checkoutIntent.putParcelableArrayListExtra("cartItems", (ArrayList<? extends Parcelable>) cartItems); // Assuming cartItems is List<CartItem>
-        checkoutIntent.putExtra("totalPrice", totalPrice);
-        startActivity(checkoutIntent);
+        double total = calculateTotalPrice(cartItems, productMap);
+        totalPrice.setText(String.format(Locale.US, "€%.2f", total));
     }
 
     private double calculateTotalPrice(List<CartItem> cartItems, Map<String, Product> productMap) {
@@ -158,5 +159,13 @@ public class CartActivity extends AppCompatActivity {
             }
         }
         return total;
+    }
+
+    private void goToCheckout() {
+        double total = calculateTotalPrice(cartItems, productMap);
+        Intent checkoutIntent = new Intent(CartActivity.this, CheckoutActivity.class);
+        checkoutIntent.putParcelableArrayListExtra("cartItems", new ArrayList<>(cartItems));
+        checkoutIntent.putExtra("totalPrice", total);
+        startActivity(checkoutIntent);
     }
 }

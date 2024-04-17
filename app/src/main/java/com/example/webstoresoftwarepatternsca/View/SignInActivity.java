@@ -30,6 +30,7 @@ public class SignInActivity extends AppCompatActivity {
     private TextView switchToRegister;
     private AuthenticationRepository authRepository;
     private FirebaseAuth mAuth; // Declaration of the FirebaseAuth instance
+    private UserRepository userRepository; // Added repository for user operations
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,6 +39,7 @@ public class SignInActivity extends AppCompatActivity {
 
         mAuth = FirebaseAuth.getInstance();
         authRepository = new AuthenticationRepository();
+        userRepository = new UserRepository(); // Initialize the UserRepository
 
         emailEditText = findViewById(R.id.emailEntered);
         passwordEditText = findViewById(R.id.passEntered);
@@ -53,56 +55,55 @@ public class SignInActivity extends AppCompatActivity {
             String email = emailEditText.getText().toString().trim();
             String password = passwordEditText.getText().toString().trim();
 
-            authRepository.signInUser(email, password, task -> {
-                if (task.isSuccessful()) {
-                    Log.d("LoginActivity", "signInWithEmail:success");
-                    FirebaseUser firebaseUser = mAuth.getCurrentUser();
+            if (!email.isEmpty() && !password.isEmpty()) {
+                authRepository.signInUser(email, password, task -> {
+                    if (task.isSuccessful()) {
+                        Log.d("SignInActivity", "signInWithEmail:success");
+                        FirebaseUser firebaseUser = mAuth.getCurrentUser();
+                        if (firebaseUser != null) {
+                            userRepository.initializeNewUserAfterSignIn(firebaseUser.getUid(), firebaseUser.getEmail(), new UserRepository.UserFetchListener() {
+                                @Override
+                                public void onUserFetched(User user) {
+                                    UserSessionManager.getInstance().initializeSessionWithFirebaseUserId(user.getUserId(), new UserSessionManager.UserFetchListener() {
+                                        @Override
+                                        public void onUserFetched(User user) {
+                                            navigateToMainActivity();
+                                        }
 
-                    if (firebaseUser != null) {
-                        String userId = firebaseUser.getUid();
-                        UserRepository userRepository = new UserRepository();
-                        userRepository.fetchUserById(userId, new UserRepository.UserFetchListener() {
-                            @Override
-                            public void onUserFetched(User user) {
-                                if (user == null) {
-                                    user = new User(userId, firebaseUser.getEmail(), null, null, null, "No Tier", false);
-                                    userRepository.addUser(user);
+                                        @Override
+                                        public void onError(DatabaseError error) {
+                                            Log.e("SignInActivity", "Error initializing session: " + error.getMessage());
+                                            Toast.makeText(SignInActivity.this, "Session initialization failed: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                                        }
+                                    });
                                 }
 
-                                // Initialize session using Singleton pattern
-                                UserSessionManager.getInstance().initializeSessionWithFirebaseUserId(userId, new UserSessionManager.UserFetchListener() {
-                                    @Override
-                                    public void onUserFetched(User user) {
+                                @Override
+                                public void onError(DatabaseError error) {
+                                    Log.e("SignInActivity", "Error fetching user: " + error.getMessage());
+                                    Toast.makeText(SignInActivity.this, "Error fetching user details.", Toast.LENGTH_SHORT).show();
+                                }
 
-                                        Intent intent = new Intent(SignInActivity.this, MainActivity.class);
-                                        startActivity(intent);
-                                        finish();
-                                    }
-
-                                    @Override
-                                    public void onError(DatabaseError error) {
-                                        Log.e("SignInActivity", "Error initializing session: " + error.getMessage());
-                                        // Handle error if needed
-                                    }
-                                });
-                            }
-
-                            @Override
-                            public void onError(DatabaseError error) {
-                                Log.e("LoginActivity", "Error fetching user: " + error.getMessage());
-                            }
-
-                            @Override
-                            public void onUsersFetched(List<User> userList) {
-
-                            }
-                        });
+                                @Override
+                                public void onUsersFetched(List<User> userList) {
+                                    // Not used in this context
+                                }
+                            });
+                        }
+                    } else {
+                        Log.w("SignInActivity", "signInWithEmail:failure", task.getException());
+                        Toast.makeText(SignInActivity.this, "Authentication failed.", Toast.LENGTH_SHORT).show();
                     }
-                } else {
-                    Log.w("LoginActivity", "signInWithEmail:failure", task.getException());
-                    Toast.makeText(SignInActivity.this, "Authentication failed.", Toast.LENGTH_SHORT).show();
-                }
-            });
+                });
+            } else {
+                Toast.makeText(SignInActivity.this, "Please enter email and password.", Toast.LENGTH_SHORT).show();
+            }
         });
+    }
+
+    private void navigateToMainActivity() {
+        Intent intent = new Intent(SignInActivity.this, MainActivity.class);
+        startActivity(intent);
+        finish();
     }
 }

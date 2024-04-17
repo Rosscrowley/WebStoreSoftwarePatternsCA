@@ -52,7 +52,7 @@ public class CartItemAdapter extends RecyclerView.Adapter<CartItemAdapter.CartIt
 
         holder.removeButton.setOnClickListener(v -> {
             if(onItemRemoveListener != null) {
-                onItemRemoveListener.onItemRemoved(cartItem);
+                onItemRemoveListener.onItemRemoved(cartItem, position); // Pass position as well
             }
         });
     }
@@ -78,6 +78,6 @@ public class CartItemAdapter extends RecyclerView.Adapter<CartItemAdapter.CartIt
     }
 
     public interface OnItemRemoveListener {
-        void onItemRemoved(CartItem cartItem);
+        void onItemRemoved(CartItem cartItem, int position);
     }
 }

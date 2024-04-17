@@ -151,6 +151,38 @@ public class UserRepository {
         });
     }
 
+    public void initializeNewUserAfterSignIn(String userId, String email, UserFetchListener listener) {
+        databaseReference.child(userId).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                User user;
+                if (!snapshot.exists()) {
+                    // User doesn't exist, so create a new one
+                    user = new User();
+                    user.setUserId(userId);
+                    user.setEmail(email);
+                    user.setLoyaltyTier("No Tier");
+                    user.setAdmin(false); // Set other defaults as needed
+                    databaseReference.child(userId).setValue(user);
+                } else {
+                    // User exists, get their details
+                    user = snapshot.getValue(User.class);
+                    if (user != null && user.getEmail() == null) {
+                        // If the email was not set, set it now
+                        user.setEmail(email);
+                        databaseReference.child(userId).child("email").setValue(email);
+                    }
+                }
+                listener.onUserFetched(user); // Callback with the user object
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                listener.onError(error);
+            }
+        });
+    }
+
 //    private void updateLoyaltyState(User user) {
 //        if (user.getTotalSpent() >= 500) {
 //            user.setLoyaltyState(new PlatinumState());
